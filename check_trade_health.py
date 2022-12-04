@@ -56,11 +56,11 @@ class MyHTMLParser(HTMLParser):
 				else:
 					sys.exit()
 
-			#if ((self.span_counter % 7) == Column.Low.value):
-			#	current_date = datetime.strptime(data,"%b %d, %Y")
-			#	current_date_epoch = current_date.timestamp()
-			#	if (current_date_epoch >= buy_date_epoch):
-			#		print("Date     :", data)
+			if ((self.span_counter % 7) == Column.Low.value):
+				print("Low     :", data)
+				if trade_info["direction"] == Direction.Long:
+					if (float(data) < trade_info["stop"]):
+						print("Stopped out")
 	#def handle_comment(self, data):
 		#print("Comment  :", data)
 
@@ -88,6 +88,7 @@ html_file.close()
 
 
 trade_info = {
+	"symbol": "AAPL",
 	"buy_date": "11/03/2022",
 	"direction": Direction.Long,
 	"stop": 142.00,
@@ -97,6 +98,11 @@ trade_info = {
 buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
 trade_info["buy_date_epoch"] = buy_date.timestamp()
 print(trade_info["buy_date_epoch"])
+print("Trade summary:")
+print(" Symbol: {0}".format(trade_info["symbol"]))
+print(" Direction: {0}".format("Long" if trade_info["direction"] == Direction.Long else "Short"))
+print(" Target: {0}".format(trade_info["target"]))
+print(" Stop: {0}".format(trade_info["stop"]))
 
 parser = MyHTMLParser()
 parser.feed(r)
