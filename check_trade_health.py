@@ -63,28 +63,21 @@ class MyHTMLParser(HTMLParser):
 					if (float(data) < trade_info["stop"]):
 						print("Stopped at {0} on {1} (low was {2})".format(trade_info["stop"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						sys.exit()
+				else: # Direction is short
+					if (float(data) <= trade_info["target"]):
+						print("Sold at {0} on {1} (low was {2})".format(trade_info["target"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
+						sys.exit()
+
 			if ((self.span_counter % 7) == Column.High.value):
 				print("High    :", data)
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
 						print("Sold at {0} on {1} (high was {2})".format(trade_info["target"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						sys.exit()
-	#def handle_comment(self, data):
-		#print("Comment  :", data)
-
-	#def handle_entityref(self, name):
-		#c = chr(name2codepoint[name])
-		#print("Named ent:", c)
-
-	#def handle_charref(self, name):
-		#if name.startswith('x'):
-			#c = chr(int(name[1:], 16))
-		#else:
-			#c = chr(int(name))
-		#print("Num ent  :", c)
-
-	#def handle_decl(self, data):
-		#print("Decl     :", data)
+				else: # Direction is short
+					if (float(data) >= trade_info["stop"]):
+						print("Stopped at {0} on {1} (high was {2})".format(trade_info["stop"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
+						sys.exit()
 
 myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
 #r = requests.get('https://finance.yahoo.com/quote/AAPL/history', headers=myheaders)
@@ -98,9 +91,9 @@ html_file.close()
 trade_info = {
 	"symbol": "AAPL",
 	"buy_date": "11/03/2022",
-	"direction": Direction.Long,
-	"stop": 143.00,
-	"target": 150.00
+	"direction": Direction.Short,
+	"stop": 149.00,
+	"target": 142.00
 }
 
 buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
