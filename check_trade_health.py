@@ -35,7 +35,6 @@ class MyHTMLParser(HTMLParser):
 			self.span_counter = 0
 		if (tag == 'span'):
 			self.in_span = True
-			#print("Start tag:", tag)
 
 	def handle_endtag(self, tag):
 		if (tag == 'tbody'):
@@ -43,22 +42,18 @@ class MyHTMLParser(HTMLParser):
 		if (tag == 'span'):
 			self.in_span = False
 			self.span_counter += 1
-		#print("End tag  :", tag)
 
 	def handle_data(self, data):
 		if (self.in_tbody and self.in_span):
 			if ((self.span_counter % 7) == Column.Date.value):
-				#print("Self {0} {1}".format(self.span_counter, data))
 				current_date = datetime.strptime(data,"%b %d, %Y")
 				current_date_epoch = current_date.timestamp()
 				if (current_date_epoch >= trade_info["buy_date_epoch"]):
 					trade_info["current_date"] = current_date
-					print("Date     :", data)
 				else:
 					sys.exit()
 
 			if ((self.span_counter % 7) == Column.Low.value):
-				print("Low     :", data)
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) < trade_info["stop"]):
 						print("Stopped at {0} on {1} (low was {2})".format(trade_info["stop"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
@@ -69,7 +64,6 @@ class MyHTMLParser(HTMLParser):
 						sys.exit()
 
 			if ((self.span_counter % 7) == Column.High.value):
-				print("High    :", data)
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
 						print("Sold at {0} on {1} (high was {2})".format(trade_info["target"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
@@ -92,13 +86,12 @@ trade_info = {
 	"symbol": "AAPL",
 	"buy_date": "11/03/2022",
 	"direction": Direction.Short,
-	"stop": 149.00,
-	"target": 142.00
+	"stop": 151.00,
+	"target": 36.00
 }
 
 buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
 trade_info["buy_date_epoch"] = buy_date.timestamp()
-print(trade_info["buy_date_epoch"])
 print("Trade summary:")
 print(" Symbol: {0}".format(trade_info["symbol"]))
 print(" Direction: {0}".format("Long" if trade_info["direction"] == Direction.Long else "Short"))
