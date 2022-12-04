@@ -51,6 +51,7 @@ class MyHTMLParser(HTMLParser):
 				if (current_date_epoch >= trade_info["buy_date_epoch"]):
 					trade_info["current_date"] = current_date
 				else:
+					print("Trade is still active")
 					sys.exit()
 
 			if ((self.span_counter % 7) == Column.Low.value):
@@ -86,8 +87,8 @@ trade_info = {
 	"symbol": "AAPL",
 	"buy_date": "11/03/2022",
 	"direction": Direction.Short,
-	"stop": 151.00,
-	"target": 36.00
+	"stop": 551.00,
+	"target": 55.00
 }
 
 buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
@@ -101,7 +102,4 @@ print(" Stop: {0}".format(trade_info["stop"]))
 parser = MyHTMLParser()
 parser.feed(r)
 parser.close()
-
-
-
 
