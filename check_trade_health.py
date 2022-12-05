@@ -82,12 +82,9 @@ class MyHTMLParser(HTMLParser):
 
 def evaluate_trade(trade_info):
 
-	myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
-	#r = requests.get('https://finance.yahoo.com/quote/AAPL/history', headers=myheaders)
-	#print(r.text)
-	html_file = open('apple.html')
-	r = html_file.read()
-	html_file.close()
+	#html_file = open('apple.html')
+	#r = html_file.read()
+	#html_file.close()
 
 
 	buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
@@ -98,23 +95,26 @@ def evaluate_trade(trade_info):
 	print(" Target: {0}".format(trade_info["target"]))
 	print(" Stop: {0}".format(trade_info["stop"]))
 
+	myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
+	yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
+	print(yahoo_url)
+	r = requests.get(yahoo_url, headers=myheaders)
+
+	#print(r.text)
 	parser = MyHTMLParser()
-	parser.feed(r)
+	parser.feed(r.text)
 	parser.close()
 
 
-trade_info = {
-	"symbol": "AAPL",
-	"buy_date": "11/03/2022",
-	"direction": Direction.Short,
-	"stop": 551.00,
-	"target": 55.00
-}
-
-evaluate_trade(trade_info)
-
-#with open('/tmp/more_experiments.csv', mode='r') as file:
-	#csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
-	#for lines in csv_file:
-		#print(lines)
+with open('/tmp/more_experiments.csv', mode='r') as file:
+	csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
+	for lines in csv_file:
+		trade_info = {
+			"symbol": lines["Symbol"],
+			"buy_date": lines["Buy date"],
+			"direction": Direction.Short if (lines["Direction"] == "Short") else Direction.Long,
+			"stop": float(lines["Stop"]),
+			"target": float(lines["Target"])
+		}
+		evaluate_trade(trade_info)
 
