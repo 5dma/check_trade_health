@@ -11,6 +11,7 @@ from html.parser import HTMLParser
 from datetime import datetime
 from enum import Enum
 import csv
+from time import sleep
 
 class Column(Enum):
 	Date = 0
@@ -82,9 +83,9 @@ class MyHTMLParser(HTMLParser):
 
 def evaluate_trade(trade_info):
 
-	#html_file = open('apple.html')
-	#r = html_file.read()
-	#html_file.close()
+	html_file = open('apple.html')
+	r = html_file.read()
+	html_file.close()
 
 
 	buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
@@ -94,15 +95,17 @@ def evaluate_trade(trade_info):
 	print(" Direction: {0}".format("Long" if trade_info["direction"] == Direction.Long else "Short"))
 	print(" Target: {0}".format(trade_info["target"]))
 	print(" Stop: {0}".format(trade_info["stop"]))
+	print(" Buy date: {0}".format(trade_info["buy_date"]))
 
-	myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
-	yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
-	print(yahoo_url)
-	r = requests.get(yahoo_url, headers=myheaders)
+	#myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
+	#yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
+	#print(yahoo_url)
+	#r = requests.get(yahoo_url, headers=myheaders)
 
 	#print(r.text)
 	parser = MyHTMLParser()
-	parser.feed(r.text)
+	#parser.feed(r.text)
+	parser.feed(r)
 	parser.close()
 
 
@@ -117,4 +120,7 @@ with open('/tmp/more_experiments.csv', mode='r') as file:
 			"target": float(lines["Target"])
 		}
 		evaluate_trade(trade_info)
+		#if (lines["Sold"] != ''):
+		#	print("Symbol: {0}, sold {1}".format(trade_info['symbol'],lines["Sold"]))
+		sleep(3)
 
