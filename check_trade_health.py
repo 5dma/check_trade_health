@@ -12,6 +12,7 @@ from datetime import datetime
 from enum import Enum
 import csv
 from time import sleep
+import getopt
 
 class Column(Enum):
 	Date = 0
@@ -96,7 +97,6 @@ class MyHTMLParser(HTMLParser):
 						trade_info["sell_price"] = float(data)
 
 			if ((self.span_counter % 7) == Column.High.value):
-				#print("The trade status in high column is {0}".format(trade_info["status"]))
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
 						trade_info["sell_date"] = self.current_date_epoch
@@ -112,10 +112,18 @@ class MyHTMLParser(HTMLParser):
 
 def evaluate_trade(trade_info):
 
-	html_file = open('/home/abba/programming/python/check_trade_health/apple.html')
-	r = html_file.read()
-	html_file.close()
+	r = ''
+	if developer_mode:
+		html_file = open('/home/abba/programming/python/check_trade_health/apple.html')
+		r = html_file.read()
+		html_file.close()
+	else:
+		myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0', 'Cookie': 'A1=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A3=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A1S=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E&j=US; PRF=t%3DPLUG; maex=%7B%22v2%22%3A%7B%7D%7D; cmp=t=1670797066&j=0&u=1YNN'}
+		yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
+		print(yahoo_url)
+		r = requests.get(yahoo_url, headers=myheaders)
 
+	
 
 	buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
 	trade_info["buy_date_epoch"] = buy_date.timestamp()
@@ -126,22 +134,45 @@ def evaluate_trade(trade_info):
 	print(" Stop: {0}".format(trade_info["stop"]))
 	print(" Buy date: {0}".format(trade_info["buy_date"]))
 
-	#myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0',}
-	#yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
-	#print(yahoo_url)
-	#r = requests.get(yahoo_url, headers=myheaders)
-
-	#print(r.text)
 	parser = MyHTMLParser()
-	#parser.feed(r.text)
-	parser.feed(r)
+	if developer_mode:
+		parser.feed(r)
+	else:
+		parser.feed(r.text)
 	parser.close()
 
+def usage():
+	print("\nUsage: python3 check_trade_health.py [-d] | <filename.csv>")
+	print("  -d indicates developer mode. This option does not require <filename.csv>\n")
+
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "hd")
+except getopt.GetoptError as err:
+	print(err)  # will print something like "option -a not recognized"
+	usage()
+	sys.exit(2)
+
+developer_mode = False
+for o, a in opts:
+	if o == '-h':
+		usage()
+		sys.exit()
+	elif o == '-d':
+		developer_mode = True
+
+trade_file = 'test_data.csv'
+if not developer_mode:
+	if (len(sys.argv) < 2):
+		usage()
+		sys.exit()
+	else:
+		trade_file = sys.argv[1]
 
 trade_info = {}
-with open('test_data.csv', mode='r') as file:
+with open(trade_file, mode='r') as file:
 	csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
 	for lines in csv_file:
+		print(lines["Symbol"])
 		trade_info.clear()
 		trade_info = {
 			"symbol": lines["Symbol"],
