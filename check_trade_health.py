@@ -51,7 +51,7 @@ class MyHTMLParser(HTMLParser):
 		if (tag == 'tbody'):
 			self.in_tbody = False
 			print("Trade results:")
-			if (trade_info["sell_date"] == None):
+			if (trade_info["sell_date"] is None):
 				print("Trade is still active")
 			else:
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Stopped):
@@ -72,7 +72,6 @@ class MyHTMLParser(HTMLParser):
 		if (self.in_tbody and self.in_span and self.continue_processing):
 
 			if ((self.span_counter % 7) == Column.Date.value):
-				#print("Processing date {0} {1}".format(data, trade_info["buy_date"]))
 				current_date = datetime.strptime(data,"%b %d, %Y")
 				self.current_date_epoch = current_date.timestamp()
 				if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
@@ -84,11 +83,9 @@ class MyHTMLParser(HTMLParser):
 						trade_info["sell_date"] = self.current_date_epoch
 						trade_info["status"] = Outcome.Stopped
 						trade_info["sell_price"] = float(data)
-						#print("Stopped at {0} on {1} (low was {2})".format(trade_info["stop"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						
 				else: # Direction is short
 					if (float(data) <= trade_info["target"]):
-						#print("Sold at {0} on {1} (low was {2})".format(trade_info["target"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						trade_info["sell_date"] = self.current_date_epoch
 						trade_info["status"] = Outcome.Sold
 						trade_info["sell_price"] = float(data)
@@ -96,13 +93,11 @@ class MyHTMLParser(HTMLParser):
 			if ((self.span_counter % 7) == Column.High.value):
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
-						#print("Sold at {0} on {1} (high was {2})".format(trade_info["target"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						trade_info["sell_date"] = self.current_date_epoch
 						trade_info["status"] = Outcome.Sold
 						trade_info["sell_price"] = float(data)
 				else: # Direction is short
 					if (float(data) >= trade_info["stop"]):
-						#print("Stopped at {0} on {1} (high was {2})".format(trade_info["stop"], trade_info["current_date"].strftime("%Y-%m-%d"), data))
 						trade_info["sell_date"] = self.current_date_epoch
 						trade_info["status"] = Outcome.Stopped
 						trade_info["sell_price"] = float(data)
@@ -111,7 +106,7 @@ class MyHTMLParser(HTMLParser):
 
 def evaluate_trade(trade_info):
 
-	html_file = open('apple.html')
+	html_file = open('/home/abba/programming/python/check_trade_health/apple.html')
 	r = html_file.read()
 	html_file.close()
 
@@ -138,7 +133,7 @@ def evaluate_trade(trade_info):
 
 
 trade_info = {}
-with open('more_experiments.csv', mode='r') as file:
+with open('test_data.csv', mode='r') as file:
 	csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
 	for lines in csv_file:
 		trade_info.clear()
