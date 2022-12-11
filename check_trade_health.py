@@ -53,15 +53,17 @@ class MyHTMLParser(HTMLParser):
 			print("Trade results:")
 			if (trade_info["sell_date"] is None):
 				print("Trade is still active")
+			elif (trade_info["status"] == Outcome.Both):
+				print("Trade went both sold and stopped on {:s}".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y")))
 			else:
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					print("  Trade closed a on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					print("  Trade closed b on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					print("  Trade closed c on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					print("  Trade closed d on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
 				
 		 
 		elif (tag == 'tr') and self.in_tbody:
@@ -75,7 +77,6 @@ class MyHTMLParser(HTMLParser):
 
 	def handle_data(self, data):
 		if (self.in_tbody and self.in_span and self.continue_processing):
-			print("Value of span_counter is {0}".format(self.span_counter))
 
 			if ((self.span_counter % 7) == Column.Date.value):
 				current_date = datetime.strptime(data,"%b %d, %Y")
@@ -84,26 +85,37 @@ class MyHTMLParser(HTMLParser):
 			if ((self.span_counter % 7) == Column.Low.value):
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) <= trade_info["stop"]):
+						#print("Logn Stopped")
 						trade_info["sell_date"] = self.current_date_epoch
-						trade_info["status"] = Outcome.Stopped
+						#trade_info["status"] = Outcome.Stopped
+						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Sold else Outcome.Stopped
+						#print("The trade status in low column is NOW {0}".format(trade_info["status"]))
 						trade_info["sell_price"] = float(data)
 						
 				else: # Direction is short
 					if (float(data) <= trade_info["target"]):
+						#print("Short sold")
 						trade_info["sell_date"] = self.current_date_epoch
-						trade_info["status"] = Outcome.Sold
+						#trade_info["status"] = Outcome.Sold
+						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Stopped else Outcome.Sold
 						trade_info["sell_price"] = float(data)
 
 			if ((self.span_counter % 7) == Column.High.value):
+				#print("The trade status in high column is {0}".format(trade_info["status"]))
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
+						#print("Long sold")
 						trade_info["sell_date"] = self.current_date_epoch
-						trade_info["status"] = Outcome.Sold
+						#trade_info["status"] = Outcome.Sold
+						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Stopped else Outcome.Sold
+						#print("The trade status in high column is NOW {0}".format(trade_info["status"]))
 						trade_info["sell_price"] = float(data)
 				else: # Direction is short
 					if (float(data) >= trade_info["stop"]):
+						#print("Short stopped")
 						trade_info["sell_date"] = self.current_date_epoch
-						trade_info["status"] = Outcome.Stopped
+						#trade_info["status"] = Outcome.Stopped
+						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Sold else Outcome.Stopped
 						trade_info["sell_price"] = float(data)
 
 
