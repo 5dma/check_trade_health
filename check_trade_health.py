@@ -57,13 +57,13 @@ class MyHTMLParser(HTMLParser):
 				print("Trade went both sold and stopped on {:s}".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y")))
 			else:
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed a on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed b on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed c on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed d on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
 				
 		 
 		elif (tag == 'tr') and self.in_tbody:
