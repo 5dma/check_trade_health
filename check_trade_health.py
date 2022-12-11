@@ -85,18 +85,13 @@ class MyHTMLParser(HTMLParser):
 			if ((self.span_counter % 7) == Column.Low.value):
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) <= trade_info["stop"]):
-						#print("Logn Stopped")
 						trade_info["sell_date"] = self.current_date_epoch
-						#trade_info["status"] = Outcome.Stopped
 						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Sold else Outcome.Stopped
-						#print("The trade status in low column is NOW {0}".format(trade_info["status"]))
 						trade_info["sell_price"] = float(data)
 						
 				else: # Direction is short
 					if (float(data) <= trade_info["target"]):
-						#print("Short sold")
 						trade_info["sell_date"] = self.current_date_epoch
-						#trade_info["status"] = Outcome.Sold
 						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Stopped else Outcome.Sold
 						trade_info["sell_price"] = float(data)
 
@@ -104,17 +99,12 @@ class MyHTMLParser(HTMLParser):
 				#print("The trade status in high column is {0}".format(trade_info["status"]))
 				if trade_info["direction"] == Direction.Long:
 					if (float(data) >= trade_info["target"]):
-						#print("Long sold")
 						trade_info["sell_date"] = self.current_date_epoch
-						#trade_info["status"] = Outcome.Sold
 						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Stopped else Outcome.Sold
-						#print("The trade status in high column is NOW {0}".format(trade_info["status"]))
 						trade_info["sell_price"] = float(data)
 				else: # Direction is short
 					if (float(data) >= trade_info["stop"]):
-						#print("Short stopped")
 						trade_info["sell_date"] = self.current_date_epoch
-						#trade_info["status"] = Outcome.Stopped
 						trade_info["status"] = Outcome.Both if trade_info["status"] == Outcome.Sold else Outcome.Stopped
 						trade_info["sell_price"] = float(data)
 
@@ -164,7 +154,5 @@ with open('test_data.csv', mode='r') as file:
 			"sell_price": 0
 		}
 		evaluate_trade(trade_info)
-		#if (lines["Sold"] != ''):
-		#	print("Symbol: {0}, sold {1}".format(trade_info['symbol'],lines["Sold"]))
 		sleep(3)
 
