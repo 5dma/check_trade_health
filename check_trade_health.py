@@ -63,6 +63,11 @@ class MyHTMLParser(HTMLParser):
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Sold):
 					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
 				
+		 
+		elif (tag == 'tr') and self.in_tbody:
+			if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
+				self.continue_processing = False
+			
 		elif self.continue_processing:
 			if (tag == 'span'):
 				self.in_span = False
@@ -70,12 +75,11 @@ class MyHTMLParser(HTMLParser):
 
 	def handle_data(self, data):
 		if (self.in_tbody and self.in_span and self.continue_processing):
+			print("Value of span_counter is {0}".format(self.span_counter))
 
 			if ((self.span_counter % 7) == Column.Date.value):
 				current_date = datetime.strptime(data,"%b %d, %Y")
 				self.current_date_epoch = current_date.timestamp()
-				if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
-					self.continue_processing = False
 
 			if ((self.span_counter % 7) == Column.Low.value):
 				if trade_info["direction"] == Direction.Long:
