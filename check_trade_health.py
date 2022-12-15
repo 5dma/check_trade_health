@@ -118,7 +118,22 @@ def evaluate_trade(trade_info):
 		r = html_file.read()
 		html_file.close()
 	else:
-		myheaders = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0', 'Cookie': 'A1=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A3=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A1S=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E&j=US; PRF=t%3DPLUG; maex=%7B%22v2%22%3A%7B%7D%7D; cmp=t=1670797066&j=0&u=1YNN'}
+		myheaders = {
+			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+			'Accept-Encoding':'gzip, deflate, br',
+			'Accept-Language':'en-US,en;q=0.5',
+			'Connection':'keep-alive',
+			'Host':'finance.yahoo.com',
+			'Sec-Fetch-Dest':'document',
+			'Sec-Fetch-Mode':'navigate',
+			'Sec-Fetch-Site':'same-origin',
+			'Sec-Fetch-User':'?1',
+			'TE':'trailers',
+			'Upgrade-Insecure-Requests':'1',
+			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0', 
+			'Cookie': 'A1=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A3=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A1S=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E&j=US; PRF=t%3DPLUG; maex=%7B%22v2%22%3A%7B%7D%7D; cmp=t=1670797066&j=0&u=1YNN',
+
+}
 		yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
 		print(yahoo_url)
 		r = requests.get(yahoo_url, headers=myheaders)
@@ -143,7 +158,8 @@ def evaluate_trade(trade_info):
 
 def usage():
 	print("\nUsage: python3 check_trade_health.py [-d] | <filename.csv>")
-	print("  -d indicates developer mode. This option does not require <filename.csv>\n")
+	print("       python3 check_trade_health.py -h")
+	print("       -d indicates developer mode. This option ignores <filename.csv>\n")
 
 try:
 	opts, args = getopt.getopt(sys.argv[1:], "hd")
@@ -172,18 +188,19 @@ trade_info = {}
 with open(trade_file, mode='r') as file:
 	csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
 	for lines in csv_file:
-		print(lines["Symbol"])
-		trade_info.clear()
-		trade_info = {
-			"symbol": lines["Symbol"],
-			"buy_date": lines["Buy date"],
-			"direction": Direction.Short if (lines["Direction"] == "Short") else Direction.Long,
-			"stop": float(lines["Stop"]),
-			"target": float(lines["Target"]),
-			"status": Outcome.Open,
-			"sell_date": None,
-			"sell_price": 0
-		}
-		evaluate_trade(trade_info)
-		sleep(3)
+		if (lines["Sold"] == ""):
+			print("Processing {0}".format(lines["Symbol"]))
+			trade_info.clear()
+			trade_info = {
+				"symbol": lines["Symbol"],
+				"buy_date": lines["Buy date"],
+				"direction": Direction.Short if (lines["Direction"] == "Short") else Direction.Long,
+				"stop": float(lines["Stop"]),
+				"target": float(lines["Target"]),
+				"status": Outcome.Open,
+				"sell_date": None,
+				"sell_price": 0
+			}
+			evaluate_trade(trade_info)
+			sleep(3)
 
