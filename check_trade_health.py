@@ -51,22 +51,25 @@ class MyHTMLParser(HTMLParser):
 	def handle_endtag(self, tag):
 		if (tag == 'tbody'):
 			self.in_tbody = False
-			print("Trade results:")
+			result=""
 			if (trade_info["sell_date"] is None):
-				print("Trade is still active")
+				result = "Trade is still active"
 			elif (trade_info["status"] == Outcome.Both):
-				print("Trade went both sold and stopped on {:s}".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y")))
+				result = "Trade went both sold and stopped on {:s}".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"))
 			else:
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					result = "Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"])
 				if (trade_info["direction"] == Direction.Short) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					result = "Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"])
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Stopped):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"]))
+					result = "Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["stop"], trade_info["sell_price"])
 				if (trade_info["direction"] == Direction.Long) and (trade_info["status"] == Outcome.Sold):
-					print("  Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"]))
+					result = "Trade closed on {:s} at {:.2f} ({:.2f}).".format(datetime.fromtimestamp(trade_info["sell_date"]).strftime("%m/%d/%Y"), trade_info["target"], trade_info["sell_price"])
 				
 		 
+			row_data = "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>".format(trade_info["symbol"], trade_info["direction"].name, trade_info["target"], trade_info["stop"],trade_info["buy_date"],result)
+			output_file.write(row_data)
+
 		elif (tag == 'tr') and self.in_tbody:
 			if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
 				self.continue_processing = False
@@ -135,19 +138,12 @@ def evaluate_trade(trade_info):
 
 }
 		yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
-		print(yahoo_url)
 		r = requests.get(yahoo_url, headers=myheaders)
 
 	
 
 	buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
 	trade_info["buy_date_epoch"] = buy_date.timestamp()
-	print("Trade summary:")
-	print(" Symbol: {0}".format(trade_info["symbol"]))
-	print(" Direction: {0}".format("Long" if trade_info["direction"] == Direction.Long else "Short"))
-	print(" Target: {0}".format(trade_info["target"]))
-	print(" Stop: {0}".format(trade_info["stop"]))
-	print(" Buy date: {0}".format(trade_info["buy_date"]))
 
 	parser = MyHTMLParser()
 	if developer_mode:
@@ -184,6 +180,25 @@ if not developer_mode:
 	else:
 		trade_file = sys.argv[1]
 
+output_file = open("/tmp/trade_health.html", "w")
+start_html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Trade health</title>
+	<meta charset="utf-8">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body class="p-5">
+	
+	<table class="table">
+		<thead>
+			<tr><td>Symbol</td><td>Direction</td><td>Target</td><td>Stop</td><td>Buy date</td><td>Result</td></tr>
+
+		</thead>
+		<tbody>
+"""
+output_file.write(start_html)
 trade_info = {}
 with open(trade_file, mode='r') as file:
 	csv_file = csv.DictReader(file,None,None, dialect='unix', delimiter='\t', quoting=csv.QUOTE_ALL)
@@ -202,5 +217,14 @@ with open(trade_file, mode='r') as file:
 				"sell_price": 0
 			}
 			evaluate_trade(trade_info)
-			sleep(3)
+			if not developer_mode:
+				sleep(3)
 
+end_html = """
+</tbody>
+	</table>
+</body>
+</html>
+"""
+output_file.write(end_html)
+output_file.close()
