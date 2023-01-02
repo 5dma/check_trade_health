@@ -113,6 +113,15 @@ class MyHTMLParser(HTMLParser):
 
 
 
+def trade_input(trade_info):
+	print("Trade input:")
+	print("  Symbol: {0}".format(trade_info["symbol"]))
+	print("  Buy date: {0}".format(trade_info["buy_date"]))
+	print("  Direction: {0}".format(trade_info["direction"]))
+	print("  Stop: {0}".format(trade_info["stop"]))
+	print("  Target: {0}\n".format(trade_info["target"]))
+
+
 def evaluate_trade(trade_info):
 
 	r = ''
@@ -153,24 +162,28 @@ def evaluate_trade(trade_info):
 	parser.close()
 
 def usage():
-	print("\nUsage: python3 check_trade_health.py [-d] | <filename.csv>")
+	print("\nUsage: python3 check_trade_health.py [-d] | [-v] <filename.csv>")
 	print("       python3 check_trade_health.py -h")
-	print("       -d indicates developer mode. This option ignores <filename.csv>\n")
+	print("       -d indicates developer mode. This option ignores <filename.csv>")
+	print("       -v verbose mode\n")
 
 try:
-	opts, args = getopt.getopt(sys.argv[1:], "hd")
+	opts, args = getopt.getopt(sys.argv[1:], "hdv")
 except getopt.GetoptError as err:
 	print(err)  # will print something like "option -a not recognized"
 	usage()
 	sys.exit(2)
 
 developer_mode = False
+verbose_mode = False
 for o, a in opts:
 	if o == '-h':
 		usage()
 		sys.exit()
 	elif o == '-d':
 		developer_mode = True
+	elif o == '-v':
+		verbose_mode = True
 
 trade_file = 'test_data.csv'
 if not developer_mode:
@@ -216,6 +229,8 @@ with open(trade_file, mode='r') as file:
 				"sell_date": None,
 				"sell_price": 0
 			}
+			if verbose_mode:
+				trade_input(trade_info)
 			evaluate_trade(trade_info)
 			if not developer_mode:
 				sleep(3)
