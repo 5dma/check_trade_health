@@ -69,10 +69,6 @@ class MyHTMLParser(HTMLParser):
 		 
 			row_data = "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td></tr>".format(trade_info["symbol"], trade_info["direction"].name, trade_info["target"], trade_info["stop"],trade_info["buy_date"],result)
 			output_file.write(row_data)
-
-		elif (tag == 'tr') and self.in_tbody:
-			if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
-				self.continue_processing = False
 			
 		elif self.continue_processing:
 			if (tag == 'span'):
@@ -85,6 +81,8 @@ class MyHTMLParser(HTMLParser):
 			if ((self.span_counter % 7) == Column.Date.value):
 				current_date = datetime.strptime(data,"%b %d, %Y")
 				self.current_date_epoch = current_date.timestamp()
+				if (self.current_date_epoch <= trade_info["buy_date_epoch"]):
+					self.continue_processing = False
 				if verbose_mode:
 					print("Current line's date/epoch: {0} / {1}".format(data, self.current_date_epoch))
 
