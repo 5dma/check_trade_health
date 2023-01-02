@@ -85,6 +85,8 @@ class MyHTMLParser(HTMLParser):
 			if ((self.span_counter % 7) == Column.Date.value):
 				current_date = datetime.strptime(data,"%b %d, %Y")
 				self.current_date_epoch = current_date.timestamp()
+				if verbose_mode:
+					print("Current line's date/epoch: {0} / {1}".format(data, self.current_date_epoch))
 
 			if ((self.span_counter % 7) == Column.Low.value):
 				if trade_info["direction"] == Direction.Long:
@@ -119,7 +121,7 @@ def trade_input(trade_info):
 	print("  Buy date: {0}".format(trade_info["buy_date"]))
 	print("  Direction: {0}".format(trade_info["direction"]))
 	print("  Stop: {0}".format(trade_info["stop"]))
-	print("  Target: {0}\n".format(trade_info["target"]))
+	print("  Target: {0}".format(trade_info["target"]))
 
 
 def evaluate_trade(trade_info):
@@ -143,9 +145,8 @@ def evaluate_trade(trade_info):
 			'TE':'trailers',
 			'Upgrade-Insecure-Requests':'1',
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:107.0) Gecko/20100101 Firefox/107.0', 
-			'Cookie': 'A1=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A3=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A1S=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E&j=US; PRF=t%3DPLUG; maex=%7B%22v2%22%3A%7B%7D%7D; cmp=t=1670797066&j=0&u=1YNN',
-
-}
+			'Cookie': 'A1=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A3=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E; A1S=d=AQABBAVXlmMCEC7J7dRDynyO2FyT3ay530IFEgEBAQGol2OgYwAAAAAA_eMAAA&S=AQAAAuNiAkVF_PoX7y_klE5tO_E&j=US; PRF=t%3DPLUG; maex=%7B%22v2%22%3A%7B%7D%7D; cmp=t=1670797066&j=0&u=1YNN'
+		}
 		yahoo_url = 'https://finance.yahoo.com/quote/{0}/history'.format(trade_info["symbol"])
 		r = requests.get(yahoo_url, headers=myheaders)
 
@@ -153,6 +154,8 @@ def evaluate_trade(trade_info):
 
 	buy_date = datetime.strptime(trade_info["buy_date"],"%m/%d/%Y")
 	trade_info["buy_date_epoch"] = buy_date.timestamp()
+	if verbose_mode:
+		print("  Buy date epoch: {0}".format(trade_info["buy_date_epoch"]))
 
 	parser = MyHTMLParser()
 	if developer_mode:
@@ -191,7 +194,7 @@ if not developer_mode:
 		usage()
 		sys.exit()
 	else:
-		trade_file = sys.argv[1]
+		trade_file = sys.argv[len(sys.argv)-1]
 
 output_file = open("/tmp/trade_health.html", "w")
 start_html = """
